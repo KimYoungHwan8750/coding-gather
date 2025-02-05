@@ -1,5 +1,6 @@
 'use client'
 
+import { get } from "http";
 import { SearchIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
@@ -53,7 +54,7 @@ function SearchBarContainer({setImageBitmap, setIsPending}: {setImageBitmap: (bi
   }
   return (
     <div className="w-full h-20 shadow-md flex items-center p-5 gap-2">
-      <SearchBar setUrl={setUrl}/>
+      <SearchBar setUrl={setUrl} getPage={getPage}/>
       <SearchIcon
         onClick={() => getPage(url)}
         className="h-8 bg-white px-2 rounded-lg box-content cursor-pointer shadow-md hover:outline-1 hover:outline hover:outline-black/20"
@@ -62,9 +63,22 @@ function SearchBarContainer({setImageBitmap, setIsPending}: {setImageBitmap: (bi
   )
 }
 
-function SearchBar({setUrl}: {setUrl: (str: string) => void}) {
+function SearchBar({setUrl, getPage}: {setUrl: (str: string) => void, getPage: (url: string) => void}) {
+  const searchBarRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if(searchBarRef.current) {
+      searchBarRef.current.addEventListener("keydown", (evt) => {
+        if(evt.key === "Enter") {
+          evt.preventDefault();
+          if(searchBarRef.current){
+            getPage(searchBarRef.current.value);
+          }
+        }
+      })
+    }
+  }, [searchBarRef.current])
   return(
-    <textarea
+    <textarea ref={searchBarRef}
       onChange={(evt) => setUrl(evt.target.value)}
       className="w-full h-8 shadow outline outline-1 outline-black/20 rounded-lg resize-none leading-8 px-2 focus:shadow-around"
     />

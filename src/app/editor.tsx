@@ -1,7 +1,5 @@
 'use client'
-import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { NoneRingButton } from "@/components/ui/none-ring-button";
 import Editor from "@monaco-editor/react";
 import { ReactNode, useState } from "react";
 
@@ -26,7 +24,7 @@ export default function TextEditor() {
               <DropdownMenuRadioItem value="Html">HTML</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="Css">CSS</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="Java">Java</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="C++">C++</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="C">C</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
