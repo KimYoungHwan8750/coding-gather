@@ -1,13 +1,30 @@
 'use client'
-
-import { get } from "http";
 import { SearchIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useWs } from "./page";
+import { SearchMessage } from "@/lib/ws-frame-generator";
 
 export default function Canvas() {
   const [imageBitmap, setImageBitmap] = useState<ImageBitmap|null>(null);
   const nodeRef = useRef<HTMLCanvasElement>(null);
   const [isPending, setIsPending] = useState(false);
+  const ws = useWs();
+  useEffect(() => {
+      ws.socket.on("search", (res) => {
+        const parseReq = JSON.parse(res);
+      if(parseReq.code === 404) {
+        setIsPending(false);
+        alert("404 Not Found");
+      } else {
+        const byteArray = Uint8Array.from(atob(parseReq.data), c => c.charCodeAt(0));
+        const blob = new Blob([byteArray], {type: "image/png"});
+        createImageBitmap(blob).then((bitMap) => {
+          setImageBitmap(bitMap);
+          setIsPending(false);
+        })
+      }
+    })
+  }, []);
   useEffect(() => {
     const canvas = nodeRef.current;
     if(canvas) {
@@ -39,18 +56,10 @@ export default function Canvas() {
 
 function SearchBarContainer({setImageBitmap, setIsPending}: {setImageBitmap: (bitMap: ImageBitmap) => void, setIsPending: (pending: boolean) => void}) {
   const [url, setUrl] = useState("");
+  const ws = useWs();
   const getPage = async (url: string) => {
     setIsPending(true);
-    const res = await fetch("/api/search?url=" + encodeURI(url));
-    if(!res.ok) {
-      setIsPending(false);
-      alert("스크린샷 캡처에 실패했습니다.");
-      return;
-    }
-    const imageData = await res.blob();
-    const imageBitmap = await createImageBitmap(imageData);
-    setImageBitmap(imageBitmap);
-    setIsPending(false);
+    ws.socket.emit("search", SearchMessage(url));
   }
   return (
     <div className="w-full h-20 shadow-md flex items-center p-5 gap-2">

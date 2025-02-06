@@ -1,11 +1,43 @@
 'use client'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Editor from "@monaco-editor/react";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
+import { useWs } from "./page";
+import { TypingMessage } from "@/lib/ws-frame-generator";
 
-export default function TextEditor() {
+export default function TextEditor({id}: {id: "top" | "bottom"}) {
   const [language, setLanguage] = useState<string | null>(null);
   const lowerCaseLanguage = language?.toLowerCase();
+  const ws = useWs();
+  const [offset, setOffset] = useState(0);
+  const [text, setText] = useState("");
+  const [payload, setPayload] = useState("");
+  
+  const syncEditor = (value?: string) => {
+    if(value) {
+      setText(value);
+      if(value.length != offset) {
+        setOffset(value.length);
+        ws.socket.emit("typing", TypingMessage(id, value));
+      }
+    }
+  };
+  useEffect(() => {
+    ws.socket.on("typing", setPayload);
+    let parsePayload;
+    if(payload) {
+      parsePayload = JSON.parse(payload);
+      if(parsePayload.id === id) {
+        setText(parsePayload.message);
+        console.log(parsePayload.message);
+      }
+    }
+    return () => {
+      ws.socket.off("typing", setPayload);
+    }
+  }, [payload])
+
+
   return (
     <div className="w-full h-full flex flex-col">
       <EditorToolbar>
@@ -29,9 +61,9 @@ export default function TextEditor() {
             </DropdownMenuContent>
           </DropdownMenu>
         </LanguageMenu>
-
       </EditorToolbar>
       <Editor
+        onChange={syncEditor}
         className="w-full h-full"
         height="100%"
         defaultLanguage="plaintext"
@@ -41,6 +73,7 @@ export default function TextEditor() {
         options={{
           minimap: { enabled: true }
         }}
+        value={text}
       />
     </div>
   );

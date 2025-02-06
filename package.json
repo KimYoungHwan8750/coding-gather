@@ -2,8 +2,9 @@
   "name": "coding-gather",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "node server.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -20,6 +21,8 @@
     "react-dom": "^19.0.0",
     "react-highlight": "^0.15.0",
     "react-resizable-panels": "^2.1.7",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7"
   },
