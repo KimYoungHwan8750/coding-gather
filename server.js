@@ -18,8 +18,9 @@ app.prepare().then(() => {
   const io = new Server(httpServer);
 
   io.on("connection", (socket) => {
-    socket.on("typing", (value) => {
-      socket.broadcast.emit("typing", value);
+    socket.on("typing", (data) => {
+      console.log(socket.id);
+      socket.broadcast.emit("typing", data);
     });
 
     socket.on("search", async (req) => {

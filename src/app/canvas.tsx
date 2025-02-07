@@ -9,6 +9,7 @@ export default function Canvas() {
   const nodeRef = useRef<HTMLCanvasElement>(null);
   const [isPending, setIsPending] = useState(false);
   const ws = useWs();
+  console.log(ws.socket.id);
   useEffect(() => {
       ws.socket.on("search", (res) => {
         const parseReq = JSON.parse(res);

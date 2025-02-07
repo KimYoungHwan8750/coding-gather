@@ -64,11 +64,11 @@ export default function Home() {
           <ResizablePanel defaultSize={50}>
             <ResizablePanelGroup direction="vertical">
               <ResizablePanel defaultSize={25}>
-                <TextEditor id="top"></TextEditor>
+                <TextEditor direction="top"></TextEditor>
               </ResizablePanel>
               <ResizableHandle />
               <ResizablePanel defaultSize={75}>
-                <TextEditor id="bottom"></TextEditor>
+                <TextEditor direction="bottom"></TextEditor>
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>

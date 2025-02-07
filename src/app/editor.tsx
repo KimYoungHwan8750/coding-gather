@@ -1,24 +1,27 @@
 'use client'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import Editor from "@monaco-editor/react";
 import { ReactNode, useEffect, useState } from "react";
 import { useWs } from "./page";
 import { TypingMessage } from "@/lib/ws-frame-generator";
+import dynamic from "next/dynamic";
 
-export default function TextEditor({id}: {id: "top" | "bottom"}) {
+export default function TextEditor({direction}: {direction: "top" | "bottom"}) {
   const [language, setLanguage] = useState<string | null>(null);
   const lowerCaseLanguage = language?.toLowerCase();
   const ws = useWs();
   const [offset, setOffset] = useState(0);
   const [text, setText] = useState("");
   const [payload, setPayload] = useState("");
-  
-  const syncEditor = (value?: string) => {
-    if(value) {
-      setText(value);
-      if(value.length != offset) {
-        setOffset(value.length);
-        ws.socket.emit("typing", TypingMessage(id, value));
+  const id = ws.socket.id;
+  const MonacoEditor = dynamic(() => import('react-monaco-editor'), {
+    ssr: false
+  });
+  const syncEditor = (message?: string) => {
+    if(message && id) {
+      setText(message);
+      if(message.length != offset) {
+        setOffset(message.length);
+        ws.socket.emit("typing", TypingMessage({id, message, direction}));
       }
     }
   };
@@ -27,7 +30,7 @@ export default function TextEditor({id}: {id: "top" | "bottom"}) {
     let parsePayload;
     if(payload) {
       parsePayload = JSON.parse(payload);
-      if(parsePayload.id === id) {
+      if(parsePayload.direction === direction) {
         setText(parsePayload.message);
         console.log(parsePayload.message);
       }
@@ -62,19 +65,16 @@ export default function TextEditor({id}: {id: "top" | "bottom"}) {
           </DropdownMenu>
         </LanguageMenu>
       </EditorToolbar>
-      <Editor
-        onChange={syncEditor}
-        className="w-full h-full"
-        height="100%"
-        defaultLanguage="plaintext"
+      <MonacoEditor
+        height={"100%"}
         language={lowerCaseLanguage? lowerCaseLanguage : "plaintext"}
+        onChange={syncEditor}
         defaultValue="// 여기에 코드를 입력하세요"
-        theme="vs-dark"
-        options={{
-          minimap: { enabled: true }
-        }}
         value={text}
+        theme="vs-dark"
       />
+
+
     </div>
   );
 }
