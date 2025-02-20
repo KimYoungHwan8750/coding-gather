@@ -18,9 +18,9 @@ app.prepare().then(() => {
   const io = new Server(httpServer);
 
   io.on("connection", (socket) => {
-    socket.on("typing", (data) => {
-      console.log(socket.id);
-      socket.broadcast.emit("typing", data);
+    socket.on("inputText", (data) => {
+      socket.broadcast.emit("inputText", data);
+      console.log(data);
     });
 
     socket.on("search", async (req) => {
@@ -35,6 +35,10 @@ app.prepare().then(() => {
         io.broadcast.emit("search", JSON.stringify({code: 404}));
       }
     })
+
+    socket.on("changeLanguage", (data) => {
+      socket.broadcast.emit("changeLanguage", data);
+    });
   });
 
 
