@@ -1,44 +1,67 @@
 'use client'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import Editor from "@monaco-editor/react";
 import { ReactNode, useEffect, useState } from "react";
-import { useWs } from "./page";
-import { TypingMessage } from "@/lib/ws-frame-generator";
-import dynamic from "next/dynamic";
+import { useWs } from "@/provider/websocket-provider";
+import { changeLanguageMessage, inputTextMessage } from "@/lib/ws-frame-generator";
+import { ParsedChangeLanguagePayload, ParsedInputTextPayload } from "@/constant/payload-type";
+import { Direction } from "@/constant/constant";
 
-export default function TextEditor({direction}: {direction: "top" | "bottom"}) {
+export default function TextEditor({direction}: {direction: Direction}) {
   const [language, setLanguage] = useState<string | null>(null);
   const lowerCaseLanguage = language?.toLowerCase();
   const ws = useWs();
-  const [offset, setOffset] = useState(0);
   const [text, setText] = useState("");
-  const [payload, setPayload] = useState("");
-  const id = ws.socket.id;
-  const MonacoEditor = dynamic(() => import('react-monaco-editor'), {
-    ssr: false
-  });
-  const syncEditor = (message?: string) => {
-    if(message && id) {
-      setText(message);
-      if(message.length != offset) {
-        setOffset(message.length);
-        ws.socket.emit("typing", TypingMessage({id, message, direction}));
-      }
-    }
+  const [payload, setPayload] = useState<string>("");
+
+  /**
+   * Language 설정 바꾸면 다른 유저들에게도 공유
+   */
+  const changeLanguage = (language: string) => {
+    setLanguage(language);
+    ws.socket.emit("changeLanguage", changeLanguageMessage({ language, direction }));
   };
+  
+  /**
+   * 에디터에 글 입력할 때마다 다른 유저들에게 공유
+   */
+  const syncEditor = (text?: string) => {
+    if(!text) text = "";
+    setText(text);
+    ws.socket.emit("inputText", inputTextMessage({ text, direction }));
+  };
+
+  /**
+   * 웹소켓 메세지 핸들링
+   * inputText, changeLanguage 이벤트를 받아서 처리
+   */
   useEffect(() => {
-    ws.socket.on("typing", setPayload);
-    let parsePayload;
-    if(payload) {
-      parsePayload = JSON.parse(payload);
-      if(parsePayload.direction === direction) {
-        setText(parsePayload.message);
-        console.log(parsePayload.message);
+    ws.socket.on("inputText", setPayload);
+    ws.socket.on("changeLanguage", (payload: string) => {
+      if(payload === "") return;
+      const parsedPayload: ParsedChangeLanguagePayload = JSON.parse(payload);
+      if(parsedPayload.direction === direction) {
+        setLanguage(parsedPayload.language);
+      }
+    });
+    return () => {
+      ws.socket.off("inputText");
+      ws.socket.off("changeLanguage");
+    }
+  });
+
+  /**
+   * 다른 유저가 입력한 내용을 받아서 에디터에 반영
+   */
+  useEffect(() => {
+    if(payload === "") return;
+    const parsedPayload: ParsedInputTextPayload = JSON.parse(payload);
+    if(parsedPayload) {
+      if(parsedPayload.direction === direction) {
+        setText(parsedPayload.text);
       }
     }
-    return () => {
-      ws.socket.off("typing", setPayload);
-    }
-  }, [payload])
+  }, [payload]);
 
 
   return (
@@ -52,7 +75,7 @@ export default function TextEditor({direction}: {direction: "top" | "bottom"}) {
             <DropdownMenuContent className="w-56">
               <DropdownMenuLabel>Language</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup onValueChange={setLanguage}>
+              <DropdownMenuRadioGroup onValueChange={changeLanguage}>
               <DropdownMenuRadioItem value="JavaScript">JavaScript</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="TypeScript">TypeScript</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="Python">Python</DropdownMenuRadioItem>
@@ -65,16 +88,18 @@ export default function TextEditor({direction}: {direction: "top" | "bottom"}) {
           </DropdownMenu>
         </LanguageMenu>
       </EditorToolbar>
-      <MonacoEditor
-        height={"100%"}
-        language={lowerCaseLanguage? lowerCaseLanguage : "plaintext"}
+      <Editor
         onChange={syncEditor}
+        className="w-full h-full"
+        height="100%"
+        defaultLanguage="plaintext"
+        language={lowerCaseLanguage? lowerCaseLanguage : "plaintext"}
         defaultValue="// 여기에 코드를 입력하세요"
-        value={text}
         theme="vs-dark"
+        options={{
+        }}
+        value={text}
       />
-
-
     </div>
   );
 }
