@@ -1,14 +1,18 @@
-type TypingMessageType = {
-  direction: "top" | "bottom"
-  message: string
-  id: string
+import { ParsedChangeLanguagePayload, ParsedInputTextPayload } from "@/constant/payload-type";
 
-}
-function TypingMessage({direction, id, message}: TypingMessageType) {
+
+function inputTextMessage({ direction, text }: ParsedInputTextPayload) {
   return JSON.stringify({
     direction,
-    id,
-    message
+    text
+  });
+}
+
+
+function changeLanguageMessage({ direction, language }: ParsedChangeLanguagePayload) {
+  return JSON.stringify({
+    direction,
+    language
   });
 }
 
@@ -18,5 +22,4 @@ function SearchMessage(url: string) {
   });
 }
 
-export { TypingMessage, SearchMessage }
-export type { TypingMessageType }
+export { inputTextMessage, changeLanguageMessage, SearchMessage }
