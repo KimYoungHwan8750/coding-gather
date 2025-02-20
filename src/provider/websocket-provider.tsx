@@ -15,7 +15,7 @@ const WsContext = createContext<wsContextType | null>(null);
 export const WebSocketProvider = ({children}: {children: ReactNode}) => {
   const [isConnected, setIsConnected] = useState(false);
   const [transport, setTransport] = useState("N/A");
-  const EditorFeatuer = useEditorFeature();
+  const EditorFeature = useEditorFeature();
   const SharingArea = useSharingArea();
   useEffect(() => {
     if (socket.connected) {
@@ -31,8 +31,8 @@ export const WebSocketProvider = ({children}: {children: ReactNode}) => {
         setTransport(transport.name);
       });
 
-      socket.on("inputText", EditorFeatuer.onInputText.setPayload);
-      socket.on("changeLanguage", EditorFeatuer.onChangeLanguage.setLanguage);
+      socket.on("inputText", EditorFeature.onInputText.setPayload);
+      socket.on("changeLanguage", EditorFeature.onChangeLanguage.setLanguage);
       socket.on("search", onResponseData);
     }
 
