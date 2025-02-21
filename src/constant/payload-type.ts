@@ -1,3 +1,5 @@
+import { Language } from "./constant"
+
 export type AllPayload = ParsedInputTextPayload | ParsedChangeLanguagePayload | ParsedSearchPayload | string
 
 export type ParsedInputTextPayload = {
@@ -7,7 +9,7 @@ export type ParsedInputTextPayload = {
 
 export type ParsedChangeLanguagePayload = {
   direction: string
-  language: string
+  language: Language
 }
 
 export type ParsedSearchPayload = {
