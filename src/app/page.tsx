@@ -25,7 +25,7 @@ export default function Home() {
 
 function AppContainer({children}: {children: ReactNode}) {
   return (
-    <div className="w-screen h-screen flex">
+    <div className="w-full h-screen flex">
       {children}
     </div>
 
