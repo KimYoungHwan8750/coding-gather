@@ -5,11 +5,11 @@ import { ReactNode, useEffect, useState } from "react";
 import { useWs } from "@/provider/websocket-provider";
 import { changeLanguageMessage, inputTextMessage } from "@/lib/ws-frame-generator";
 import { ParsedChangeLanguagePayload, ParsedInputTextPayload } from "@/constant/payload-type";
-import { Direction } from "@/constant/constant";
+import { Direction, Language } from "@/constant/constant";
 
 export default function TextEditor({direction}: {direction: Direction}) {
-  const [language, setLanguage] = useState<string | null>(null);
-  const lowerCaseLanguage = language?.toLowerCase();
+  const [language, setLanguage] = useState<Language | null>(null);
+  const lowerCaseLanguage = language?.toLowerCase().replaceAll(" ", "");
   const ws = useWs();
   const [text, setText] = useState("");
   const [payload, setPayload] = useState<string>("");
@@ -17,7 +17,7 @@ export default function TextEditor({direction}: {direction: Direction}) {
   /**
    * Language 설정 바꾸면 다른 유저들에게도 공유
    */
-  const changeLanguage = (language: string) => {
+  const changeLanguage = (language: Language) => {
     setLanguage(language);
     ws.socket.emit("changeLanguage", changeLanguageMessage({ language, direction }));
   };
@@ -70,12 +70,13 @@ export default function TextEditor({direction}: {direction: Direction}) {
         <LanguageMenu>
           <DropdownMenu>
             <DropdownMenuTrigger className="h-full outline-none">
-              <MenuTrigger>{language? language : "Language"}</MenuTrigger>
+              <MenuTrigger>{language? language : "Plain Text"}</MenuTrigger>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
               <DropdownMenuLabel>Language</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup onValueChange={changeLanguage}>
+              <DropdownMenuRadioGroup onValueChange={(value: string) => changeLanguage(value as Language)}>
+              <DropdownMenuRadioItem value="Plain Text">Plain Text</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="JavaScript">JavaScript</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="TypeScript">TypeScript</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="Python">Python</DropdownMenuRadioItem>
@@ -122,7 +123,7 @@ function LanguageMenu({children}: {children: ReactNode}) {
 
 function MenuTrigger({children}: {children: ReactNode}) {
   return (
-    <div className="font-mono flex justify-center items-center px-2 border-x-[1px] h-full cursor-pointer select-none hover:bg-accent hover:text-accent-foreground w-[12ch]">
+    <div className="flex justify-center items-center px-2 border-x-[1px] h-full cursor-pointer select-none hover:bg-accent hover:text-accent-foreground w-[12ch]">
       {children}
     </div>
   )
