@@ -20,6 +20,7 @@ app.prepare().then(() => {
   io.on("connection", (socket) => {
     socket.on("inputText", (data) => {
       socket.broadcast.emit("inputText", data);
+      io.emit("inputText", data);
       console.log(data);
     });
 
